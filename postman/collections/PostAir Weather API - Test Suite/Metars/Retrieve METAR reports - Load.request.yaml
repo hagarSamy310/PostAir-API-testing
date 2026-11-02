@@ -1,0 +1,50 @@
+$kind: http-request
+description: Returns a list of forecasts
+url: "{{baseUrl}}/metars?airportCode=ATL"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  airportCode: ATL
+scripts:
+  - type: afterResponse
+    code: "const time = pm.response.responseTime;\r
+
+      const name = pm.info.requestName;\r
+
+      \r
+
+      pm.test(\"[LOAD] Status code is 200\", () => pm.response.to.have.status(200));\r
+
+      \r
+
+      pm.test(\"[LOAD] METAR response time is under 800ms\", () => {\r
+
+      \    pm.expect(time).to.be.below(800);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"[LOAD] METAR response size is under 2KB\", () => {\r
+
+      \    const sizeKB = pm.response.responseSize / 1024;\r
+
+      \    pm.expect(sizeKB).to.be.below(2);\r
+
+      });\r
+
+      \r
+
+      console.log(`[PERF] ${name}: response time is ${time}ms`);\r
+
+      \r
+
+      if (time > 600) {\r
+
+      \    console.warn(`[SLOW] ${name}: ${time}ms exceeds soft limit`)\r
+
+      };"
+    language: text/javascript
+settings: {}
+order: 3000

@@ -1,0 +1,88 @@
+$kind: http-request
+description: Returns a list of turbulence reports
+url: "{{baseUrl}}/turbulence"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: airportCode
+    value: ATL
+    disabled: true
+    description: airport code
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "default": "ATL",
+            "minLength": 3,
+            "maxLength": 4,
+            "pattern": "^[A-Z]{3,4}$"
+          }
+        }
+      }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", () => pm.response.to.have.status(200));
+      const data = pm.response.json();
+
+      pm.test("Each turbulence item contains expected top-level fields", () => {
+          pm.expect(data.length).to.be.greaterThan(0);
+          data.forEach(item => {
+              pm.expect(item).to.have.property("airport");
+              pm.expect(item).to.have.property("turbulenceReport");
+          });
+      });
+
+      pm.test("Severity is one of the documented values", () => {
+          const validSeverities = ["extreme", "severe", "moderate", "light"];
+          const problems = [];
+
+          data.forEach((item, i) => {
+              try {
+                  pm.expect(validSeverities).to.include(item.turbulenceReport.severity);
+              } catch (e) {
+                  problems.push(`Item ${i} (${item.airport?.code}): severity "${item.turbulenceReport.severity}"`);
+              }
+          });
+
+          pm.expect(problems, `${problems.length} of ${data.length} items have invalid severity. e.g. ${problems.slice(0, 3).join(" | ")}`).to.be.empty;
+
+      });
+
+      pm.test("Wind speed: mph matches knots", () => {
+          const problems = [];
+
+          data.forEach((item, i) => {
+              const { knots, mph } = item.turbulenceReport.windSpeed;
+              try {
+                  pm.expect(mph).to.be.closeTo(knots * 1.15078, 1);
+              } catch (e) {
+                  problems.push(`Item ${i} (${item.airport?.code}): ${knots} kt vs ${mph} mph`);
+              }
+          });
+
+          pm.expect(problems, `${problems.length} of ${data.length} items have mismatched wind units. e.g. ${problems.slice(0, 3).join(" | ")}`).to.be.empty;
+
+      });
+
+      pm.test("Altitude: feet matches meters", () => {
+          const problems = [];
+
+          data.forEach((item, i) => {
+              const { feet, meters } = item.turbulenceReport.altitude;
+              try {
+                  pm.expect(meters).to.be.closeTo(feet * 0.3048, 1);
+              } catch (e) {
+                  problems.push(`Item ${i} (${item.airport?.code}): ${feet} ft vs ${meters} m`);
+              }
+          });
+
+          pm.expect(problems, `${problems.length} of ${data.length} items have mismatched altitude units. e.g. ${problems.slice(0, 3).join(" | ")}`).to.be.empty;
+      });
+    language: text/javascript
+settings: {}
+examples: ./.resources/Retrieve turbulence report.resources/examples
+order: 1000

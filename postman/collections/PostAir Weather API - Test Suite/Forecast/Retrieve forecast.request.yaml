@@ -1,0 +1,36 @@
+$kind: http-request
+description: Returns a list of forecasts
+url: "{{baseUrl}}/forecast?forecastCity=Atlanta"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  forecastCity: Atlanta
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", () => pm.response.to.have.status(200));
+      const data = pm.response.json();
+
+      pm.test("Each forecast item contains expected top-level fields",
+          () => {
+              pm.expect(data.length).to.be.greaterThan(0);
+              data.forEach(item => {
+                  pm.expect(item).to.have.property("id");
+                  pm.expect(item).to.have.property("city");
+                  pm.expect(item).to.have.property("country");
+                  pm.expect(item).to.have.property("humidity");
+                  pm.expect(item).to.have.property("windSpeed");
+                  pm.expect(item).to.have.property("weatherCondition");
+                  pm.expect(item).to.have.property("sunriseTime");
+                  pm.expect(item).to.have.property("visibility");
+                  pm.expect(item).to.have.property("airPressure");
+                  pm.expect(item).to.have.property("temperature");
+                  pm.expect(item).to.have.property("turbulenceLevel");
+              });
+
+          });
+    language: text/javascript
+settings: {}
+examples: ./.resources/Retrieve forecast.resources/examples
+order: 1000

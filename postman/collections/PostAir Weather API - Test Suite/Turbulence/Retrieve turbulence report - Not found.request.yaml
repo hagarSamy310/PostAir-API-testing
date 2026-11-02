@@ -1,0 +1,16 @@
+$kind: http-request
+description: Returns a list of turbulence reports
+url: "{{baseUrl}}/turbulence?airportCode=ATLA"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: airportCode
+    value: ATLA
+    description: airport code
+scripts:
+  - type: afterResponse
+    code: pm.test("Status code is 404", () => pm.response.to.have.status(404));
+    language: text/javascript
+settings: {}
+order: 2000

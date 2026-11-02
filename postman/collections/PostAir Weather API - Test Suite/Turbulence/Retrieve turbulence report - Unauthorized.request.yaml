@@ -1,0 +1,21 @@
+$kind: http-request
+description: Returns a list of turbulence reports
+url: "{{baseUrl}}/turbulence?airportCode=ATL"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: airportCode
+    value: ATL
+    description: airport code
+auth:
+  type: apikey
+  credentials:
+    key: x-api-keys
+    value: "111"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status code is 401", () => pm.response.to.have.status(401));
+    language: text/javascript
+settings: {}
+order: 3000

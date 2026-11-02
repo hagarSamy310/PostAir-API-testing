@@ -1,0 +1,14 @@
+$kind: http-request
+description: Returns a list of forecasts
+url: "{{baseUrl}}/metars?airportCode=ATLa"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  airportCode: ATLa
+scripts:
+  - type: afterResponse
+    code: pm.test("Status code is 404", () => pm.response.to.have.status(404));
+    language: text/javascript
+settings: {}
+order: 2000

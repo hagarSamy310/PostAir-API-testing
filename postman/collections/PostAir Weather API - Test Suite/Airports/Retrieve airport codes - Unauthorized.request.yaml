@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/airports?countryName=United States&airportCode=ATL"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: countryName
+    value: United States
+  - key: airportCode
+    value: ATL
+    description: airport code
+auth:
+  type: apikey
+  credentials:
+    key: z-api-key
+    value: "111"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status code is 401", () => pm.response.to.have.status(401));
+    language: text/javascript
+settings: {}
+order: 2000

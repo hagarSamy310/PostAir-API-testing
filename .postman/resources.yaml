@@ -1,0 +1,11 @@
+workspace:
+  id: 0753fea8-9f7b-40cc-9e3d-40571e072cec
+cloudResources:
+  specs:
+    ../postman/specs/PostAir Weather API/postair-weather-api.yaml: 88163bf4-ed07-4ed3-a911-a8e30978ea04
+  collections:
+    ../postman/collections/PostAir Weather API - Test Suite: 45965600-fd52a4b5-c974-4bb0-8314-d47f89f7ba98
+  environments:
+    ../postman/environments/PostAir.environment.yaml: 45965600-af480965-96fa-426c-ae4e-2a325d0801ed
+localResources:
+  specs: []

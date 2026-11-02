@@ -1,0 +1,4 @@
+name: PostAir
+values:
+  - key: baseUrl
+    value: https://education.postmanlabs.com/v1/weather

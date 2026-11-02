@@ -1,0 +1,16 @@
+$kind: http-request
+description: Returns a list of forecasts
+url: "{{baseUrl}}/forecast?forecastCity=Atlanta"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  forecastCity: Atlanta
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test("Status code is 401", () => pm.response.to.have.status(401));
+    language: text/javascript
+settings: {}
+order: 3000

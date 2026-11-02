@@ -1,0 +1,89 @@
+$kind: http-request
+url: "{{baseUrl}}/airports"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: countryName
+    value: United States
+    disabled: true
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "default": "United States"
+          }
+        }
+      }
+  - key: airportCode
+    value: ATL
+    disabled: true
+    description: airport code
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "default": "ATL",
+            "minLength": 3,
+            "maxLength": 4,
+            "pattern": "^[A-Z]{3,4}$"
+          }
+        }
+      }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", () => pm.response.to.have.status(200));
+      const data = pm.response.json();
+
+
+      pm.test("Each airport item contains expected top-level fields", () => {
+          pm.expect(data.length).to.be.greaterThan(0);
+          data.forEach(item => {
+              pm.expect(item).to.have.property("country");
+              pm.expect(item).to.have.property("airports");
+              pm.expect(item.airports, `airports of ${item.country}`).to.be.an("array");
+          });
+      });
+
+      pm.test("Each airport item contains expected airport fields", () => {
+          data.forEach(item => {
+              item.airports.forEach(airport => {
+                  pm.expect(airport).to.have.all.keys(
+                      "code", "city", "name", "latitude", "longitude"
+                  );
+              });
+          });
+      });
+
+      pm.test("Airport code matches IATA format", () => {
+          data.forEach(item => {
+              item.airports.forEach(airport => {
+                  pm.expect(airport.code).to.match(/^[A-Z]{3}$/);
+              });
+          });
+      });
+      pm.test("Coordinates are numbers", () => {
+          data.forEach(item => {
+              item.airports.forEach(airport => {
+                  pm.expect(airport.longitude).to.be.a("number");
+                  pm.expect(airport.latitude).to.be.a("number");
+              });
+          });
+      });
+      pm.test("Coordinates are within valid range", () => {
+          data.forEach(item => {
+              item.airports.forEach(airport => {
+                  pm.expect(airport.longitude).to.be.within(-180, 180);
+                  pm.expect(airport.latitude).to.be.within(-90, 90);
+              });
+          });
+      });
+    language: text/javascript
+settings: {}
+examples: ./.resources/Retrieve airport codes.resources/examples
+order: 1000

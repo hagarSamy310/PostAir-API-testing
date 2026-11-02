@@ -1,0 +1,148 @@
+$kind: collection
+description: PostAir Weather API
+scripts:
+  - type: http:afterResponse
+    code: "const code = pm.response.code;\r
+
+      const errorTitles = {\r
+
+      \    404: \"Not Found\",\r
+
+      \    401: \"Unauthorized\",\r
+
+      \    403: \"Forbidden\",\r
+
+      \    500: \"Internal Server Error\"\r
+
+      };\r
+
+      \r
+
+      pm.test(\"Response time is under 2000ms\", function () {\r
+
+      \    pm.expect(pm.response.responseTime).to.be.below(2000);\r
+
+      });\r
+
+      \r
+
+      if (code === 200) {\r
+
+      \r
+
+      \    pm.test(\"Content-Type is application/json\", function () {\r
+
+      \        pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r
+
+      \    });\r
+
+      \r
+
+      \    pm.test(\"Response body is an array\", function () {\r
+
+      \        const jsonData = pm.response.json();\r
+
+      \        pm.expect(jsonData).to.be.an(\"array\");\r
+
+      \    });\r
+
+      }\r
+
+      else if (errorTitles[code]) {\r
+
+      \    \r
+
+      \    pm.test(\"Content-Type is application/problem+json\", () => {\r
+
+      \        pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");\r
+
+      \    });\r
+
+      \r
+
+      \    pm.test(\"Body follows problemDetail schema\", () => {\r
+
+      \        const body = pm.response.json();\r
+
+      \        pm.expect(body).to.have.all.keys(\r
+
+      \            \"type\", \"title\", \"status\", \"detail\",\r
+
+      \            \"instance\", \"correlationId\"\r
+
+      \        );\r
+
+      \        pm.expect(body.status).to.equal(code);\r
+
+      \        pm.expect(body.title).to.equal(errorTitles[code]);\r
+
+      \    });\r
+
+      \r
+
+      \    pm.test(\"Detail is descriptive\", () => {\r
+
+      \        const body = pm.response.json();\r
+
+      \        pm.expect(body.detail).to.be.a(\"string\");\r
+
+      \        pm.expect(body.detail.length).to.be.above(10);\r
+
+      \    });\r
+
+      \r
+
+      \    pm.test(\"Error response does not leak internals\", () => {\r
+
+      \        const text = pm.response.text();\r
+
+      \        const leakPatterns = [\r
+
+      \            /\\bat\\s+\\S+\\s+\\(.*:\\d+:\\d+\\)/,    // JavaScript stack frame\r
+
+      \            /\\bat Object\\./,                  // Node.js \r
+
+      \            /node_modules/,                   // server file paths\r
+
+      \            /Traceback \\(most recent call last\\)/,   // Python\r
+
+      \            /\\.java:\\d+/,                     // Java\r
+
+      \            /SQLException|SQLSTATE/i,         // database errors\r
+
+      \            /\"stack\"\\s*:/                 // a stack field in the JSON\r
+
+      \        ];\r
+
+      \r
+
+      \        leakPatterns.forEach(pattern => {\r
+
+      \            pm.expect(text, \"matched \" + pattern).to.not.match(pattern);\r
+
+      \        });\r
+
+      \    });\r
+
+      \r
+
+      \    pm.test(\"correlationId is present for debugging\", () => {\r
+
+      \        const body = pm.response.json();\r
+
+      \        pm.expect(body.correlationId).to.be.a(\"string\");\r
+
+      \        pm.expect(body.correlationId.length).to.be.above(0);\r
+
+      \    });\r
+
+      };\r\n"
+    language: text/javascript
+auth:
+  - id: 7fce3772-87af-4a72-a542-7bf559c9ba59
+    type: apikey
+    name: apikey auth
+    credentials:
+      key: x-api-key
+      value: "{{vault:apiKey}}"
+      in: header
